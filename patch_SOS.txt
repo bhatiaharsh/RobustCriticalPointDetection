@@ -1,0 +1,1148 @@
+diff -Naur Detri_2.6.a/CMakeLists.txt Detri_2.6.a-new/CMakeLists.txt
+--- Detri_2.6.a/CMakeLists.txt	1969-12-31 16:00:00.000000000 -0800
++++ Detri_2.6.a-new/CMakeLists.txt	2016-08-26 14:53:54.000000000 -0700
+@@ -0,0 +1,37 @@
++cmake_minimum_required(VERSION 2.8)
++
++project(SoS)
++
++set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
++
++file(GLOB BASIC_INC ./basic/*.h)
++file(GLOB LIA_INC ./lia/*.h)
++file(GLOB SOS_INC ./sos/*.h)
++
++SET(BASIC_SRC
++        ./basic/arg.c       ./basic/cb.c        ./basic/counter.c
++        ./basic/getarg.c    ./basic/istaque.c   ./basic/math2.c
++        ./basic/qsort.c     ./basic/tokenize.c  ./basic/basic.c
++        ./basic/cb_doprnt.c ./basic/files.c     ./basic/isort.c
++        ./basic/malloc.c    ./basic/prime.c     ./basic/time.c
++        ./basic/uhash.c
++)
++SET(LIA_SRC
++        ./lia/aux.c         ./lia/chars.c       ./lia/det.c
++        ./lia/lia.c         ./lia/pool.c        ./lia/stack.c
++)
++
++SET(SOS_SRC 
++	./sos/in_sphere.c	./sos/lambda3.c  	./sos/lambda4.c  
++	./sos/lambda5.c		./sos/minor.c		./sos/positive3.c
++	./sos/primitive.c 	./sos/smaller.c 	./sos/sos.c
++)
++
++
++include_directories(
++	./basic/
++	./lia/
++	./sos/
++)
++
++add_library(SoS ${SOS_INC} ${LIA_INC} ${BASIC_INC} ${BASIC_SRC} ${LIA_SRC} ${SOS_SRC})
+diff -Naur Detri_2.6.a/basic/arg.c Detri_2.6.a-new/basic/arg.c
+--- Detri_2.6.a/basic/arg.c	1995-07-18 23:10:04.000000000 -0700
++++ Detri_2.6.a-new/basic/arg.c	2016-08-26 13:05:38.000000000 -0700
+@@ -89,8 +89,11 @@
+   int i2 = i + 1;
+   if (i2 < argc)
+     {
+-      if (match (argv[i], string) and (sscanf (argv[i2], "%d", val) == 1))
+-        {
++/// patched by Harsh Bhatia {
++      //if (match (argv[i], string) and (sscanf (argv[i2], "%d", val) == 1))
++      if (match (argv[i], string) && (sscanf (argv[i2], "%d", val) == 1))
++/// } patched by Harsh Bhatia
++      {
+           increment = 2;
+           return (TRUE);
+         }
+@@ -108,7 +111,10 @@
+   int i2 = i + 1;
+   if (i2 < argc)
+     {
+-      if (match (argv[i], string) and (sscanf (argv[i2], "%f", val) == 1))
++/// patched by Harsh Bhatia {
++        //if (match (argv[i], string) and (sscanf (argv[i2], "%f", val) == 1))
++        if (match (argv[i], string) && (sscanf (argv[i2], "%f", val) == 1))
++/// } patched by Harsh Bhatia
+         {
+           increment = 2;
+           return (TRUE);
+@@ -127,8 +133,11 @@
+   int i2 = i + 1;
+   if (i2 < argc)
+     {
+-      if (match (argv[i], string) and (sscanf (argv[i2], "%lf", val) == 1))
+-        {
++/// patched by Harsh Bhatia {
++//    if (match (argv[i], string) and (sscanf (argv[i2], "%lf", val) == 1))
++      if (match (argv[i], string) && (sscanf (argv[i2], "%lf", val) == 1))
++/// } patched by Harsh Bhatia
++      {
+           increment = 2;
+           return (TRUE);
+         }
+diff -Naur Detri_2.6.a/basic/basic.c Detri_2.6.a-new/basic/basic.c
+--- Detri_2.6.a/basic/basic.c	1995-07-19 00:16:44.000000000 -0700
++++ Detri_2.6.a-new/basic/basic.c	2016-08-26 13:03:31.000000000 -0700
+@@ -149,6 +149,22 @@
+ {
+   int okay = TRUE;
+   ;
++    
++/// patched by Harsh Bhatia {
++    if ((bitsof (char) != 8) || (bitsof (short) != 16) || (bitsof (int) != 32))
++        okay = FALSE;
++    else if (! ((bitsof (void *) == 32) || (bitsof (void *) == 64)))
++        okay = FALSE;
++    else if (! ((bitsof (long) == 32) || (bitsof (long) == 64)))
++        okay = FALSE;
++    else if (bitsof (long) != bitsof (void *))
++        okay = FALSE;
++#if defined (__LONGLONG)
++    else if (! ((bitsof (long long) == 32) || (bitsof (long long) == 64)
++                || (bitsof (long long) == 128)))
++        okay = FALSE;
++#endif
++/*
+   if ((bitsof (char) != 8) or (bitsof (short) != 16) or (bitsof (int) != 32))
+     okay = FALSE;
+   else if (not ((bitsof (void *) == 32) or (bitsof (void *) == 64)))
+@@ -162,12 +178,17 @@
+                 or (bitsof (long long) == 128)))
+     okay = FALSE;
+ #endif
++*/
++/// } patched by Harsh Bhatia
+   else if (bitsof (float) != 32)
+     okay = FALSE;
+   else if (bitsof (double) != 64)
+     okay = FALSE;
+   ;
+-  if (not okay)
++/// patched by Harsh Bhatia {
++//  if (not okay)
++  if (! okay)
++/// } patched by Harsh Bhatia
+     {
+ #define PRT(B_STR,B_SIZE,SHOULD_BE) \
+       fprint (stderr, "%4d == %s ... should be %s\n", B_SIZE, B_STR, SHOULD_BE)
+diff -Naur Detri_2.6.a/basic/basic.h Detri_2.6.a-new/basic/basic.h
+--- Detri_2.6.a/basic/basic.h	1995-07-19 00:24:51.000000000 -0700
++++ Detri_2.6.a-new/basic/basic.h	2016-08-26 14:45:09.000000000 -0700
+@@ -51,7 +51,13 @@
+ #endif
+ 
+ #if !(defined (NeXT) || (__convex__))
++/// patched by Harsh Bhatia {
++#ifdef __APPLE__
++#include <limits.h>
++#else
+ # include <values.h>   /* for MAXINT, MAXFLOAT, BITS() ... */
++#endif
++/// } patched by Harsh Bhatia
+ #endif                 /* Some machines don't have this one. */
+ 
+ #if defined (NeXT)
+@@ -60,11 +66,15 @@
+ 
+ #if defined (sgi)
+ # include <bstring.h>  /* bzero(), bcopy() */
++/// patched by Harsh Bhatia {
++/*
+ #else
+ # if !defined (bzero)
+    int bzero (const void *b, int length);
+    int bcopy (const void *src, void *dst, int length);
+ # endif
++*/
++/// } patched by Harsh Bhatia
+ #endif
+ 
+ /*            (*) NOTE: The constant NULL designates a nonexistent pointer. */
+@@ -166,10 +176,15 @@
+ 
+ /* Human-readable logical operators and functional in-line if. */
+ 
++/// patched by Harsh Bhatia {
++/*
+ #define and    &&
+ #define or     ||
+ #define not    !
+ #define mod    %
++*/
++/// } patched by Harsh Bhatia
++
+ 
+ #define If(COND,THEN,ELSE)  ((COND) ? (THEN) : (ELSE))
+ 
+@@ -179,8 +194,11 @@
+ 
+ #define   upfor(I,S,E)  for (I = (S); I <= (E); I++)
+ #define downfor(I,S,E)  for (I = (S); I >= (E); I--)
+-#define until(Q)        while (not (Q));
+-#define loop            for (;;) 
++/// patched by Harsh Bhatia {
++//#define until(Q)        while (not (Q));
++#define until(Q)        while (! (Q));
++/// } patched by Harsh Bhatia
++#define loop            for (;;)
+ #define once            while (0)
+ /*                      Use as in  "#define MACRO(...) do { ..... } once"
+                         to enable semicolons after MACRO() invocations. */
+@@ -287,11 +305,18 @@
+    Compilation w/o -D__DEBUG__ ignores all Assert() and Assert_if() macros.
+    Assert_always() checks for valid EX all the time.
+    (Based on /usr/include/Assert.h.) */
+-  
++
++/// patched by Harsh Bhatia {
++/*#define Assert_always(EX) \
++do { \
++if (not (EX)) basic_error (basic__assert_frmt, __FILE__, __LINE__); \
++} once
++*/
+ #define Assert_always(EX) \
+ do { \
+-     if (not (EX)) basic_error (basic__assert_frmt, __FILE__, __LINE__); \
++     if (! (EX)) basic_error (basic__assert_frmt, __FILE__, __LINE__); \
+    } once
++/// patched by Harsh Bhatia {
+ 
+ #ifdef __DEBUG__
+ # define Assert(EX)          Assert_always (EX)
+@@ -317,7 +342,10 @@
+    implemented such that, I believe, it doesn't cost too much time during
+    execution.  Hopefully, it's portable, too.  --Ernst. */
+ 
+-#define Touch_args(ARG_CONJUNCTION)  (void) (0 and (ARG_CONJUNCTION))
++/// patched by Harsh Bhatia {
++//#define Touch_args(ARG_CONJUNCTION)  (void) (0 and (ARG_CONJUNCTION))
++#define Touch_args(ARG_CONJUNCTION)  (void) (0 && (ARG_CONJUNCTION))
++/// } patched by Harsh Bhatia
+ 
+ /*---------------------------------------------------------------------------*/
+ 
+diff -Naur Detri_2.6.a/basic/cb.c Detri_2.6.a-new/basic/cb.c
+--- Detri_2.6.a/basic/cb.c	1995-07-12 10:05:31.000000000 -0700
++++ Detri_2.6.a-new/basic/cb.c	2016-08-26 13:08:11.000000000 -0700
+@@ -38,8 +38,12 @@
+ {
+   if (Top_Buffer.last == Top_Buffer.size - 1)
+     { /* buffer is full */
+-      if (not Top_Buffer.str)
+-        { /* hey, it's not even initialized, yet */
++/// patched by Harsh Bhatia {
++//    if (not Top_Buffer.str)
++      if (! Top_Buffer.str)
++/// } patched by Harsh Bhatia
++
++      { /* hey, it's not even initialized, yet */
+           Top_Buffer.size = INITIAL_SIZE;
+           Top_Buffer.str = MALLOC (char, Top_Buffer.size);
+           MARK (Top_Buffer.str, -Magic);
+@@ -50,7 +54,10 @@
+       else if (Top_Buffer.size < UPPER_LIMIT)
+         { /* enlarge size and re-allocate */
+           Top_Buffer.size *= REALLOC_FACT;
+-          if ((Top_Buffer.size < 1) or (Top_Buffer.size > UPPER_LIMIT))
++/// patched by Harsh Bhatia {
++//          if ((Top_Buffer.size < 1) or (Top_Buffer.size > UPPER_LIMIT))
++            if ((Top_Buffer.size < 1) || (Top_Buffer.size > UPPER_LIMIT))
++/// } patched by Harsh Bhatia
+             Top_Buffer.size = UPPER_LIMIT;
+           REALLOC (Top_Buffer.str, char, Top_Buffer.size);
+           MARK (Top_Buffer.str, -Magic);
+@@ -187,8 +194,12 @@
+   top ++;
+   if (top == STACK_SIZE)
+     basic_error ("basic_cb_push_buffer: overflow");
+-  if ((Top_Buffer.str == NULL) and (Top_Buffer.size == 0)
+-      and (Top_Buffer.last == 0) and (Top_Buffer.first == 0))
++/// patched by Harsh Bhatia {
++//  if ((Top_Buffer.str == NULL) and (Top_Buffer.size == 0)
++//        and (Top_Buffer.last == 0) and (Top_Buffer.first == 0))
++  if ((Top_Buffer.str == NULL) && (Top_Buffer.size == 0)
++      && (Top_Buffer.last == 0) && (Top_Buffer.first == 0))
++/// } patched by Harsh Bhatia
+     { /* still need to initialize this element as EMPTY */
+       static Cbuf empty = EMPTY;
+       Top_Buffer = empty;
+diff -Naur Detri_2.6.a/basic/counter.c Detri_2.6.a-new/basic/counter.c
+--- Detri_2.6.a/basic/counter.c	1995-07-10 14:31:59.000000000 -0700
++++ Detri_2.6.a-new/basic/counter.c	2016-08-26 13:09:02.000000000 -0700
+@@ -69,7 +69,10 @@
+   int sum = counter->a + increment;
+   if (sum > BASE)  /* this speeds up things; see below */ 
+     {
+-      counter->a = sum mod BASE;
++/// patched by Harsh Bhatia {
++//    counter->a = sum mod BASE;
++      counter->a = sum % BASE;
++/// } patched by Harsh Bhatia
+       counter->b += (sum / BASE);
+     }
+   else
+diff -Naur Detri_2.6.a/basic/files.c Detri_2.6.a-new/basic/files.c
+--- Detri_2.6.a/basic/files.c	1995-07-13 13:57:23.000000000 -0700
++++ Detri_2.6.a-new/basic/files.c	2016-08-26 13:12:15.000000000 -0700
+@@ -66,7 +66,10 @@
+ #ifndef AUTOMATIC_UNCOMPRESS
+   {
+     file = fopen (fname, fmode);
+-    if (not file)
++/// patched by Harsh Bhatia {
++//  if (not file)
++    if (! file)
++/// } patched by Harsh Bhatia
+       basic_error ("basic_fopen: Can't open file \"%s\" with mode \"%s\".", 
+                    fname, fmode);
+   }
+@@ -77,9 +80,13 @@
+     if (scheme == 0)
+       select_scheme (&scheme, fname);
+     sprint (zname, frmt[scheme], fname);
++/// patched by Harsh Bhatia {
++//  if (    (scheme != 0)  /* in this case, zname == "" */
++//      and (access (zname, F_OK) != -1))
+     if (    (scheme != 0)  /* in this case, zname == "" */
+-        and (access (zname, F_OK) != -1))
+-      {
++        && (access (zname, F_OK) != -1))
++/// } patched by Harsh Bhatia
++    {
+         if (strpbrk (fmode, "wW"))
+           {
+             if (access (zname, W_OK) == -1)
+@@ -107,8 +114,11 @@
+       }
+     else
+       file = fopen (fname, fmode);
+-    if (not file)
+-      basic_error ("basic_fopen: Can't open file \"%s\", %s \"%s\".",
++/// patched by Harsh Bhatia {
++//  if (not file)
++    if (! file)
++/// } patched by Harsh Bhatia
++        basic_error ("basic_fopen: Can't open file \"%s\", %s \"%s\".",
+                    fname, "with mode", fmode);
+   }
+ #endif
+@@ -198,7 +208,10 @@
+         is compressed or not is a hack! */
+ {
+   time_t no_access = (time_t) 0;
+-  if (not basic_access (path_name))
++/// patched by Harsh Bhatia {
++//  if (not basic_access (path_name))
++  if (! basic_access (path_name))
++/// } patched by Harsh Bhatia
+     return (no_access);
+   else
+     {
+diff -Naur Detri_2.6.a/basic/istaque.c Detri_2.6.a-new/basic/istaque.c
+--- Detri_2.6.a/basic/istaque.c	1995-07-17 23:47:13.000000000 -0700
++++ Detri_2.6.a-new/basic/istaque.c	2016-08-26 13:46:40.000000000 -0700
+@@ -56,7 +56,10 @@
+         checking a magic number and minp & maxp. */
+ {
+   Internal_istaque *q = (Internal_istaque *) s;
+-  Assert_always (q and (minp <= q) and (q <= maxp));
++/// patched by Harsh Bhatia {
++//Assert_always (q and (minp <= q) and (q <= maxp));
++  Assert_always (q && (minp <= q) && (q <= maxp));
++/// } patched by Harsh Bhatia
+   Assert_always ((q->magic == Magic));
+   return (q);
+ }
+@@ -125,7 +128,10 @@
+      /* Tests if s is empty. */
+ {
+   Internal_istaque *q = cast (s);
+-  return (not (non_empty_stack (q) or non_empty_bottom (q)));
++/// patched by Harsh Bhatia {
++//return (not (non_empty_stack (q) or non_empty_bottom (q)));
++  return (! (non_empty_stack (q) || non_empty_bottom (q)));
++/// } patched by Harsh Bhatia
+ }
+ 
+ /*--------------------------------------------------------------------------*/
+@@ -158,8 +164,12 @@
+   if (non_empty_stack (q))
+     { 
+       q->top --;
+-      if ((q->shrink) and (q->factor > 1) and (q->stacksize > q->minsize)
+-          and (q->top < q->stacksize / q->factor / q->factor))
++/// patched by Harsh Bhatia {
++//    if ((q->shrink) and (q->factor > 1) and (q->stacksize > q->minsize)
++//        and (q->top < q->stacksize / q->factor / q->factor))
++      if ((q->shrink) && (q->factor > 1) && (q->stacksize > q->minsize)
++          && (q->top < q->stacksize / q->factor / q->factor))
++/// } patched by Harsh Bhatia
+         { /* shrink stack */
+           int newsize = (int) (q->stacksize / q->factor);
+           if (newsize < q->minsize) newsize = q->minsize;
+diff -Naur Detri_2.6.a/basic/malloc.c Detri_2.6.a-new/basic/malloc.c
+--- Detri_2.6.a/basic/malloc.c	1995-07-19 00:26:31.000000000 -0700
++++ Detri_2.6.a-new/basic/malloc.c	2016-08-26 13:52:25.000000000 -0700
+@@ -5,9 +5,13 @@
+ #include "basic.h"
+ #include <sys/types.h>
+ #if !(defined (NeXT) || defined (__convex__))
++/// patched by Harsh Bhatia {
++#ifndef __APPLE__
+ # include <malloc.h>
+ # define USE_mallinfo   /* Uncomment this when you don't have mallinfo(). */
+ #endif
++/// } patched by Harsh Bhatia
++#endif
+ 
+ /*---------------------------------------------------------------------------*/
+ 
+@@ -49,7 +53,10 @@
+   Basic_byte *memory;
+   Proto (">>> basic_malloc (n=%d, f=\"%s\", l=%d)\n", n, f, l);
+   memory = (Basic_byte *) malloc ((unsigned) n);
+-  if ((n < 1) or (not memory))
++/// patched by Harsh Bhatia {
++//if ((n < 1) or (not memory))
++  if ((n < 1) || (! memory))
++/// } patched by Harsh Bhatia
+     basic_error ("basic_malloc: failed, n=%d, f=\"%s\", l=%d", n, f, l);
+   Proto (">>> basic_malloc() returns 0x%lx ... 0x%lx\n",
+          Addr (memory), Addr (&(memory[n])));
+@@ -72,10 +79,16 @@
+   Basic_byte *memory;
+   Proto (">>> basic_realloc (ptr=0x%lx, n=%d, f=\"%s\", l=%d)\n",
+          Addr (ptr), n, f, l);
+-  if (not ptr)
++/// patched by Harsh Bhatia {
++//if (not ptr)
++  if (! ptr)
++/// } patched by Harsh Bhatia
+     basic_error ("basic_realloc: ptr=0");
+   memory = (Basic_byte *) realloc (ptr, (unsigned) n);
+-  if ((n < 1) or (not memory))
++/// patched by Harsh Bhatia {
++//if ((n < 1) or (not memory))
++    if ((n < 1) || (! memory))
++/// } patched by Harsh Bhatia
+     basic_error ("basic_realloc: failed, ptr=0x%lxn=%d, f=\"%s\", l=%d",
+                  Addr (ptr), n, f, l);
+   Proto (">>> basic_realloc() returns 0x%lx ... 0x%lx\n",
+@@ -215,8 +228,11 @@
+       Malist *p = ml;
+       while (p->address)
+         {
+-          if ((a <= p->mark) and (p->mark <= b))
+-            r += p->bytes;
++/// patched by Harsh Bhatia {
++//        if ((a <= p->mark) and (p->mark <= b))
++          if ((a <= p->mark) && (p->mark <= b))
++/// } patched by Harsh Bhatia
++              r += p->bytes;
+           p = p->next;
+         }
+     }
+@@ -229,8 +245,11 @@
+      /* Prints the internal list that keeps track of allocated memory
+         objects to given file; if *file == NULL, call is ignored. */
+ {
+-  if (file and (debug_level > 0) and ml)
+-    {
++/// patched by Harsh Bhatia {
++//if (file and (debug_level > 0) and ml)
++  if (file && (debug_level > 0) && ml)
++/// } patched by Harsh Bhatia
++  {
+       Malist *p = ml;
+       fprint (file, "(basic_malloc list: %s", If (ml_len, "", "empty"));
+       while (p->address)
+@@ -323,7 +342,10 @@
+ static void malist_delete (void *address)
+      /* Deletes given address from ml, if it finds it there. */
+ {
+-  if (address and ml)
++/// patched by Harsh Bhatia {
++//if (address and ml)
++  if (address && ml)
++/// } patched by Harsh Bhatia
+     {
+       Malist *p = ml;
+       while (p->address)
+diff -Naur Detri_2.6.a/basic/prime.c Detri_2.6.a-new/basic/prime.c
+--- Detri_2.6.a/basic/prime.c	1995-07-11 07:19:41.000000000 -0700
++++ Detri_2.6.a-new/basic/prime.c	2016-08-26 14:00:32.000000000 -0700
+@@ -24,10 +24,16 @@
+   else
+     {      
+       n ++;  /* at least one larger! */
+-      if (not Odd (n))
+-        n ++;
++/// patched by Harsh Bhatia {
++/*      if (not Odd (n))
++          n ++;
+       while (not basic_prime_test (n))
++          n += 2;*/
++      if (! Odd (n))
++        n ++;
++      while (! basic_prime_test (n))
+         n += 2;
++/// } patched by Harsh Bhatia
+       return (n);
+     }
+ }
+@@ -40,8 +46,13 @@
+         thus reducing the number of necessary checks by at least 70%.
+         NOTE: Works only for numbers > 1; otherwise will return TRUE!
+         */
++/// patched by Harsh Bhatia {
++/*#define Check(K)  mods++; \
++                  if (n mod (K) == 0) return (FALSE)*/
+ #define Check(K)  mods++; \
+-                  if (n mod (K) == 0) return (FALSE)
++                  if (n % (K) == 0) return (FALSE)
++/// } patched by Harsh Bhatia
++
+ #define BaseCheck(K)  if (n <= (K)) return (TRUE); \
+                       Check (K)
+ {
+@@ -89,7 +100,10 @@
+      /* Trivially checks n for primality. */
+ {
+   tests ++;
+-  if (not Odd (n))
++/// patched by Harsh Bhatia {
++//if (not Odd (n))
++  if (! Odd (n))
++/// } patched by Harsh Bhatia
+     return (FALSE);
+   else
+     { /* check odd n for primality */
+@@ -97,7 +111,10 @@
+       while (k * k <= n)
+         {
+           mods ++;
+-          if (n mod k == 0)
++/// patched by Harsh Bhatia {
++//        if (n mod k == 0)
++          if (n % k == 0)
++/// } patched by Harsh Bhatia
+             return (FALSE);
+           else
+             k ++;
+diff -Naur Detri_2.6.a/basic/time.c Detri_2.6.a-new/basic/time.c
+--- Detri_2.6.a/basic/time.c	1995-07-17 19:29:53.000000000 -0700
++++ Detri_2.6.a-new/basic/time.c	2016-08-26 14:01:38.000000000 -0700
+@@ -55,7 +55,10 @@
+   clock = time ((time_t *) 0);
+   ptr = ctime (&clock);
+   i = 1;
+-  while (*ptr and (i < STRLEN))
++/// patched by Harsh Bhatia {
++//while (*ptr and (i < STRLEN))
++  while (*ptr && (i < STRLEN))
++/// } patched by Harsh Bhatia
+     {
+       datime[i-1] = *ptr;
+       i ++;
+diff -Naur Detri_2.6.a/basic/tokenize.c Detri_2.6.a-new/basic/tokenize.c
+--- Detri_2.6.a/basic/tokenize.c	1995-07-13 09:53:12.000000000 -0700
++++ Detri_2.6.a-new/basic/tokenize.c	2016-08-26 14:04:09.000000000 -0700
+@@ -29,17 +29,26 @@
+         {
+           if (j == maximum)
+             return (-1);
+-          token[j++] = &(string[i]);  
+-          while (string[i] and (string[i] != ' '))
+-            { /* parse token */
+-              if ((string[i] == '\\') and (string[i+1] == '"'))
+-                shift_left (&(string[i]));  /* quote as a character */
++          token[j++] = &(string[i]);
++/// patched by Harsh Bhatia {
++//        while (string[i] and (string[i] != ' '))
++          while (string[i] && (string[i] != ' '))
++/// } patched by Harsh Bhatia
++          { /* parse token */
++/// patched by Harsh Bhatia {
++              //if ((string[i] == '\\') and (string[i+1] == '"'))
++              if ((string[i] == '\\') && (string[i+1] == '"'))
++/// } patched by Harsh Bhatia
++                  shift_left (&(string[i]));  /* quote as a character */
+               else if (string[i] == '"')
+                 { /* parse quoted token */
+                   shift_left (&(string[i]));
+                   while (string[i])
+                     {
+-                      if ((string[i] == '\\') and (string[i+1] == '"'))
++/// patched by Harsh Bhatia {
++                      //if ((string[i] == '\\') and (string[i+1] == '"'))
++                      if ((string[i] == '\\') && (string[i+1] == '"'))
++/// } patched by Harsh Bhatia
+                         { /* quote as a character within quoted string */
+                           shift_left (&(string[i]));
+                           i ++;
+diff -Naur Detri_2.6.a/basic/uhash.c Detri_2.6.a-new/basic/uhash.c
+--- Detri_2.6.a/basic/uhash.c	1995-07-17 23:51:25.000000000 -0700
++++ Detri_2.6.a-new/basic/uhash.c	2016-08-26 14:07:05.000000000 -0700
+@@ -28,7 +28,10 @@
+   *m = s = basic_prime_successor (s);
+   ma = If ((s < max_a (r)), s - 1, max_a (r) - 1);
+   upfor (i, 0, r - 1)
+-    a[i] = 1 + ((int) random () mod ma);
++/// patched by Harsh Bhatia {
++    //a[i] = 1 + ((int) random () mod ma);
++    a[i] = 1 + ((int) random () % ma);
++/// } patched by Harsh Bhatia
+ }
+ 
+ /*--------------------------------------------------------------------------*/
+@@ -38,7 +41,12 @@
+         for the (bytes of the) key x[0..r-1].  See basic_uhash_new(). */
+ {
+   int i, sum = 0, m_reg = m;
+-  upfor (i, 0, r - 1)
++/// patched by Harsh Bhatia {
++/*upfor (i, 0, r - 1)
+     sum += (a[i] * x[i]) mod m_reg;
+-  return (sum mod m_reg);
++  return (sum mod m_reg);*/
++  upfor (i, 0, r - 1)
++    sum += (a[i] * x[i]) % m_reg;
++  return (sum % m_reg);
++/// } patched by Harsh Bhatia
+ }
+diff -Naur Detri_2.6.a/lia/aux.c Detri_2.6.a-new/lia/aux.c
+--- Detri_2.6.a/lia/aux.c	1995-08-04 19:03:41.000000000 -0700
++++ Detri_2.6.a-new/lia/aux.c	2016-08-26 14:12:03.000000000 -0700
+@@ -46,7 +46,10 @@
+         Can be called more then once, but cannot increase the ABSOLUTE maximum,
+         either set by lia_maximum() or by FIRST call of lia_length(). */
+ {
+-  if (not initialized)
++/// patched by Harsh Bhatia {
++//if (not initialized)
++  if (! initialized)
++/// } patched by Harsh Bhatia
+     { /* (better call lia_maximum() first :) */
+       lia_maximum (length);
+     }
+@@ -201,12 +204,18 @@
+   int d, i = 0;
+   int n_flag = FALSE;
+   static Lia *aux = NULL;
+-  if (not aux)
++/// patched by Harsh Bhatia {
++  //if (not aux)
++  if (! aux)
++/// } patched by Harsh Bhatia
+     {
+       aux = MALLOC (Lia, lia_common.max);
+       MARK (aux, -lia_magic);
+     }
+-  if ((frmt[0] != '%') or (frmt[2] != 0))
++/// patched by Harsh Bhatia {
++  //if ((frmt[0] != '%') or (frmt[2] != 0))
++  if ((frmt[0] != '%') || (frmt[2] != 0))
++/// } patched by Harsh Bhatia
+     basic_error ("lia_strload: totally wrong frmt: \"%s\"", frmt);
+   switch (frmt[1])
+     {
+@@ -252,7 +261,10 @@
+ {
+   char buf[FFPLOAD_MAXLEN];
+   sprint (buf, "%0.1f", floor (value * (double) basic_ipower (10, a)));
+-  if (((int) strlen (buf) > w + 1 + 2) or (w + 1 + 2 + 1 > FFPLOAD_MAXLEN))
++/// patched by Harsh Bhatia {
++  //if (((int) strlen (buf) > w + 1 + 2) or (w + 1 + 2 + 1 > FFPLOAD_MAXLEN))
++  if (((int) strlen (buf) > w + 1 + 2) || (w + 1 + 2 + 1 > FFPLOAD_MAXLEN))
++/// } patched by Harsh Bhatia
+     basic_error ("lia_ffpload: overflow: %d.%d, %f, \"%s\"", a, w, value, buf);
+   lia_strload (longi, buf, "%d");
+ }
+@@ -283,16 +295,25 @@
+   int z_flag = TRUE;  /* for the time being, assume zero */
+   int n_flag = is_negative (longi);
+   s = DBASE / shorti;
+-  t = DBASE mod shorti;
++/// patched by Harsh Bhatia {
++//t = DBASE mod shorti;
++  t = DBASE % shorti;
++/// } patched by Harsh Bhatia
+   r = 0;
+   downfor (i, ind, 1)
+     {
+       e = longi[i] / shorti;
+-      f = longi[i] mod shorti;
++/// patched by Harsh Bhatia {
++      //f = longi[i] mod shorti;
++      f = longi[i] % shorti;
++/// } patched by Harsh Bhatia
+       u = r * s + e;
+       v = r * t + f;   /* NOTE: overflow in v is possible when shorti > BASE */
+       result[i] = u + v / shorti;
+-      r = v mod shorti;
++/// patched by Harsh Bhatia {
++      //r = v mod shorti;
++      r = v % shorti;
++/// } patched by Harsh Bhatia
+     }
+   *remainder = If (n_flag, -r, r);
+   downfor (i, ind, 1)
+diff -Naur Detri_2.6.a/lia/base.h Detri_2.6.a-new/lia/base.h
+--- Detri_2.6.a/lia/base.h	1995-07-18 10:35:17.000000000 -0700
++++ Detri_2.6.a-new/lia/base.h	2016-08-26 14:18:29.000000000 -0700
+@@ -36,7 +36,10 @@
+ #define mod_2     & 1L
+ #define times_2  << 1L
+ 
+-#define  is_nonzero(LONG)  ((int) ((LONG[1] != 0L) or ((LONG[0] div_2) > 1L)))
++/// patched by Harsh Bhatia {
++//#define  is_nonzero(LONG)  ((int) ((LONG[1] != 0L) or ((LONG[0] div_2) > 1L)))
++#define  is_nonzero(LONG)  ((int) ((LONG[1] != 0L) || ((LONG[0] div_2) > 1L)))
++/// } patched by Harsh Bhatia
+ #define is_negative(LONG)  ((int) (LONG[0] mod_2))
+ #define     last_of(LONG)  ((int) (LONG[0] div_2))
+ 
+diff -Naur Detri_2.6.a/lia/chars.c Detri_2.6.a-new/lia/chars.c
+--- Detri_2.6.a/lia/chars.c	1995-07-18 12:17:56.000000000 -0700
++++ Detri_2.6.a-new/lia/chars.c	2016-08-26 14:13:59.000000000 -0700
+@@ -50,7 +50,10 @@
+   char string[5];
+   lia_sdiv (longi, &part, longi, If (decimal_flag, 1000L, 0x1000L));
+   sprint (string, If (decimal_flag, "%03lu", "%03lx"), part);
+-  if ((longi[0] > 2) or (longi[1] > 0))
++/// patched by Harsh Bhatia {
++  //if ((longi[0] > 2) or (longi[1] > 0))
++  if ((longi[0] > 2) || (longi[1] > 0))
++/// } patched by Harsh Bhatia
+     lia_dput (longi, decimal_flag);
+   lia_cput (string[0]);
+   lia_cput (string[1]);
+@@ -74,7 +77,10 @@
+ {
+   int p;
+   static Lia *buffer = NULL;
+-  if (not buffer)
++/// patched by Harsh Bhatia {
++  //if (not buffer)
++  if (! buffer)
++/// } patched by Harsh Bhatia
+     {
+       buffer = MALLOC (Lia, lia_common.max);
+       MARK (buffer, -lia_magic);
+diff -Naur Detri_2.6.a/lia/det.c Detri_2.6.a-new/lia/det.c
+--- Detri_2.6.a/lia/det.c	1995-08-15 19:20:00.000000000 -0700
++++ Detri_2.6.a-new/lia/det.c	2016-08-26 14:14:37.000000000 -0700
+@@ -67,7 +67,10 @@
+ void lia_det (void)
+      /* Module initialization: allocate the w[W_SIZE] working space. */
+ {
+-  if (not w)
++/// patched by Harsh Bhatia {
++  //if (not w)
++  if (! w)
++/// } patched by Harsh Bhatia
+     {
+       int i;
+       li = lia_get_maximum ();
+diff -Naur Detri_2.6.a/lia/lia.c Detri_2.6.a-new/lia/lia.c
+--- Detri_2.6.a/lia/lia.c	1995-08-15 19:01:59.000000000 -0700
++++ Detri_2.6.a-new/lia/lia.c	2016-08-26 14:21:49.000000000 -0700
+@@ -72,7 +72,10 @@
+ int lia_sign (const Lia_obj longi)
+      /* Returns the sign (longi) in {-1, 0, +1}. */
+ {
+-  if ((longi[0] == 2) and (longi[1] == 0))
++/// patched by Harsh Bhatia {
++  //if ((longi[0] == 2) and (longi[1] == 0))
++  if ((longi[0] == 2) && (longi[1] == 0))
++/// } patched by Harsh Bhatia
+     return (0);
+   else if (is_negative (longi))
+     return (-1);
+@@ -89,7 +92,10 @@
+   if (long1[0] == long2[0])
+     {
+       int i = last_of (long1);
+-      while ((i > 0) and (long1[i] == long2[i]))
++/// patched by Harsh Bhatia {
++      //while ((i > 0) and (long1[i] == long2[i]))
++      while ((i > 0) && (long1[i] == long2[i]))
++/// } patched by Harsh Bhatia
+         i --;
+       result = (i <= 0);
+     }
+@@ -102,10 +108,16 @@
+      /* Returns TRIE iff long1 < long2. */
+ {
+   int n_flag1 = is_negative (long1), n_flag2 = is_negative (long2);
+-  return (   ((n_flag1 != n_flag2) and (n_flag1 == 1))
+-          or (    (n_flag1 == n_flag2)
+-              and (   ((n_flag1 == 0) and lia_ple (long1, long2))
+-                   or ((n_flag1 == 1) and lia_ple (long2, long1)))));
++/// patched by Harsh Bhatia {
++/*return (   ((n_flag1 != n_flag2) and (n_flag1 == 1))
++            or (    (n_flag1 == n_flag2)
++                and (   ((n_flag1 == 0) and lia_ple (long1, long2))
++                     or ((n_flag1 == 1) and lia_ple (long2, long1)))));*/
++  return (   ((n_flag1 != n_flag2) && (n_flag1 == 1))
++          || (    (n_flag1 == n_flag2)
++              &&  (   ((n_flag1 == 0) && lia_ple (long1, long2))
++                   || ((n_flag1 == 1) && lia_ple (long2, long1)))));
++/// } patched by Harsh Bhatia
+ }
+ 
+ /*--------------------------------------------------------------------------*/
+@@ -129,7 +141,10 @@
+                ind1 --;
+                stop_flag = FALSE;
+             }
+-        } until ((ind1 < 0) or stop_flag);
++/// patched by Harsh Bhatia {
++        //} until ((ind1 < 0) or stop_flag);
++        } until ((ind1 < 0) || stop_flag);
++/// } patched by Harsh Bhatia
+     }
+   if (ind1 < 0)
+     result = FALSE;
+@@ -141,7 +156,10 @@
+ int lia_leq (const Lia_obj long1, const Lia_obj long2)
+      /* Returns TRUE iff long1 <= long2. */
+ {
+-  return (lia_le (long1, long2) or lia_eq (long1, long2));
++/// patched by Harsh Bhatia {
++  //return (lia_le (long1, long2) or lia_eq (long1, long2));
++  return (lia_le (long1, long2) || lia_eq (long1, long2));
++/// } patched by Harsh Bhatia
+ }
+ 
+ /*--------------------------------------------------------------------------*/
+@@ -174,7 +192,10 @@
+       if (is_nonzero (longi))
+         longi[0] ++;
+     } 
+-  if ((longi[1] == 0) and (longi[0] == 3))
++/// patched by Harsh Bhatia {
++  //if ((longi[1] == 0) and (longi[0] == 3))
++  if ((longi[1] == 0) && (longi[0] == 3))
++/// } patched by Harsh Bhatia
+     /* "-0" correction;
+        don't really know why/whether this is still needed, 
+        but it seems to work as it is */
+@@ -283,7 +304,10 @@
+   upfor (i, len2 + 1, max)
+     {
+       /* b == 0 + carry */
+-      if ((long1[i] == 0) and carry)
++/// patched by Harsh Bhatia {
++      //if ((long1[i] == 0) and carry)
++      if ((long1[i] == 0) && carry)
++/// } patched by Harsh Bhatia
+         /* ie, carry > long1[i]; this is rare... but possible !?! */
+         {
+           longi[i] = ((DBASE - carry) mod_DBASE);
+@@ -315,7 +339,10 @@
+   if (ind1 + ind2 - 1 > lia_common.last)
+     basic_error ("lia_mul: (a priory) overflow; %d+1 > %d",
+                 ind1 + ind2 - 1, lia_common.length);
+-  if (((ind1 == 1) and (long1[1] == 0)) or ((ind2 == 1) and (long2[1] == 0)))
++/// patched by Harsh Bhatia {
++  //if (((ind1 == 1) and (long1[1] == 0)) or ((ind2 == 1) and (long2[1] == 0)))
++  if (((ind1 == 1) && (long1[1] == 0)) || ((ind2 == 1) && (long2[1] == 0)))
++/// } patched by Harsh Bhatia
+     /* either long1 is zero or long2 is zero; in other words:
+        (not (is_nonzero (long1) and is_nonzero (long2))) is true */
+     lia_load (longi, 0);
+diff -Naur Detri_2.6.a/lia/pool.c Detri_2.6.a-new/lia/pool.c
+--- Detri_2.6.a/lia/pool.c	1995-07-18 12:20:55.000000000 -0700
++++ Detri_2.6.a-new/lia/pool.c	2016-08-26 14:24:36.000000000 -0700
+@@ -55,9 +55,14 @@
+ static Pool* cast (const Lia_pool_adt pid)
+ {
+   Pool *p = (Pool *) pid;
+-  Assert_always (p and (minp <= p) and (p <= maxp));
++/// patched by Harsh Bhatia {
++  /*Assert_always (p and (minp <= p) and (p <= maxp));
+   Assert ((p->magic == Magic_number)
+-          and (p->block_digits >= MIN_BLOCK_SIZE * lia_common.max));
++          and (p->block_digits >= MIN_BLOCK_SIZE * lia_common.max));*/
++  Assert_always (p && (minp <= p) && (p <= maxp));
++  Assert ((p->magic == Magic_number)
++          && (p->block_digits >= MIN_BLOCK_SIZE * lia_common.max));
++/// } patched by Harsh Bhatia
+   return (p);
+ }
+ 
+@@ -108,7 +113,10 @@
+         use the resulting object as a constant; otherwise, it is best to use
+         minlen = lia_get_maximum (). */
+ {
+-  if (not longi)
++/// patched by Harsh Bhatia {
++//if (not longi)
++  if (! longi)
++/// } patched by Harsh Bhatia
+     return (lia_pool_store (pid, a_zero, minlen));
+   else
+     {
+@@ -116,7 +124,10 @@
+       Block *b = p->block_list;
+       int high = Max (minlen + 1, lia_high (longi));
+       Lia_ptr r;
+-      Assert (longi and b and (b->last == p->block_digits - 1));
++/// patched by Harsh Bhatia {
++      //Assert (longi and b and (b->last == p->block_digits - 1));
++      Assert (longi && b && (b->last == p->block_digits - 1));
++/// } patched by Harsh Bhatia
+       if (b->first + high > b->last)
+         { /* add new block */
+           b = new_block (p->block_digits);
+diff -Naur Detri_2.6.a/lia/stack.c Detri_2.6.a-new/lia/stack.c
+--- Detri_2.6.a/lia/stack.c	1995-08-15 18:53:48.000000000 -0700
++++ Detri_2.6.a-new/lia/stack.c	2016-08-26 14:29:17.000000000 -0700
+@@ -112,7 +112,10 @@
+      /* Puhes current top again on stack; ie, it "duplicates" it. */
+ {
+   lia_push ((Lia_obj) NULL);
+-  if (not (s.top and s.top->next))
++/// patched by Harsh Bhatia {
++//if (not (s.top and s.top->next))
++  if (! (s.top && s.top->next))
++/// } patched by Harsh Bhatia
+     basic_error ("lia_pushtop: underflow");
+   lia_assign (s.top->lia_object, s.top->next->lia_object);  
+ }
+@@ -126,7 +129,10 @@
+      
+ {
+   Element *old_top = s.top;
+-  if ((depth <= 0) or (not s.top))
++/// patched by Harsh Bhatia {
++//if ((depth <= 0) or (not s.top))
++  if ((depth <= 0) || (! s.top))
++/// } patched by Harsh Bhatia
+     basic_error ("lia_pop: underflow");
+   s.top = old_top->next;
+   old_top->next = s.free;
+@@ -195,7 +201,10 @@
+               as a normal int value, because this implmentation of
+               lia_power() uses lia_ipower(). */
+ {
+-  if (not s.top)
++/// patched by Harsh Bhatia {
++  //if (not s.top)
++  if (! s.top)
++/// } patched by Harsh Bhatia
+     basic_error ("lia_power: underflow");
+   if (s.top->lia_object[0] != 2)
+     basic_error ("lia_power: not yet implemented for %s",
+@@ -216,7 +225,10 @@
+ {
+   if (p == 0)
+     { /* (very) special case: stack[..., top] --> stack[..., 1] */
+-      if (not s.top)
++/// patched by Harsh Bhatia {
++      //if (not s.top)
++      if (! s.top)
++/// } patched by Harsh Bhatia
+         basic_error ("lia_ipower: undeflow");
+       s.top->lia_object[1] = 1;  /* set value to 1 */
+       s.top->lia_object[0] = 2;  /* set lenght to 1 and sign positive */
+@@ -249,7 +261,10 @@
+ {
+   Element *a, *b, *c, *er, *ef;
+   lia_push ((Lia_obj) NULL);  /* add an empty top; side effects on s! */
+-  if (not (s.top and s.top->next and s.top->next->next))
++/// patched by Harsh Bhatia {
++//if (not (s.top and s.top->next and s.top->next->next))
++  if (! (s.top && s.top->next && s.top->next->next))
++/// } patched by Harsh Bhatia
+     basic_error ("lia_binop: underflow");
+   a  = s.top->next;
+   b  = a->next;
+@@ -262,7 +277,10 @@
+   b->next = ef;
+   s.free = a; 
+   /* and now:  s.top  == c --> r...;  s.free == a --> b --> ef ... */
+-  Assert ((s.free->next->next == ef) and (s.top->next == er));
++/// patched by Harsh Bhatia {
++  //Assert ((s.free->next->next == ef) and (s.top->next == er));
++  Assert ((s.free->next->next == ef) && (s.top->next == er));
++/// } patched by Harsh Bhatia
+ }
+ 
+ /*--------------------------------------------------------------------------*/
+diff -Naur Detri_2.6.a/sos/minor.c Detri_2.6.a-new/sos/minor.c
+--- Detri_2.6.a/sos/minor.c	1995-07-12 19:58:59.000000000 -0700
++++ Detri_2.6.a-new/sos/minor.c	2016-08-26 14:40:06.000000000 -0700
+@@ -43,8 +43,11 @@
+      /* Initializes the module.
+         Must be called before any of the below routines is invoked. */
+ {
+-  if (not aux_buffer)
+-    {
++/// patched by Harsh Bhatia {
++  //if (not aux_buffer)
++  if (! aux_buffer)
++/// } patched by Harsh Bhatia
++  {
+       int i;
+       aux_0_0 = sos_lia_0_0 ();
+       lia_assign (aux_one, lia_const (1));  
+diff -Naur Detri_2.6.a/sos/primitive.c Detri_2.6.a-new/sos/primitive.c
+--- Detri_2.6.a/sos/primitive.c	1995-07-12 20:04:49.000000000 -0700
++++ Detri_2.6.a-new/sos/primitive.c	2016-08-26 14:42:19.000000000 -0700
+@@ -49,7 +49,10 @@
+       fprint (file, "* SoS %s, non-zero depth counters\n", cell->string);
+       i = 0;
+       sum0 += cell->c[0];
+-      while ((i < cell->n) and (cell->c[i] > 0))
++/// patched by Harsh Bhatia {
++      //while ((i < cell->n) and (cell->c[i] > 0))
++      while ((i < cell->n) && (cell->c[i] > 0))
++/// } patched by Harsh Bhatia
+         {
+           sum += cell->c[i];
+           if (i > max)
+@@ -80,8 +83,11 @@
+     {
+       i = 0;
+       sum0 += cell->c[0];
+-      while ((i < cell->n) and (cell->c[i] > 0))
+-        {
++/// patched by Harsh Bhatia {
++      //while ((i < cell->n) and (cell->c[i] > 0))
++      while ((i < cell->n) && (cell->c[i] > 0))
++/// } patched by Harsh Bhatia
++      {
+           sum += cell->c[i];
+           if (i > *max)
+             *max = i;
+@@ -112,7 +118,10 @@
+   int p = 0;
+   loop
+     {
+-      if ((p == a->two_k) and (p == b->two_k))
++/// patched by Harsh Bhatia {
++      //if ((p == a->two_k) and (p == b->two_k))
++      if ((p == a->two_k) && (p == b->two_k))
++/// } patched by Harsh Bhatia
+         return (0);
+       if (p == a->two_k)
+         return (1);
+diff -Naur Detri_2.6.a/sos/smaller.c Detri_2.6.a-new/sos/smaller.c
+--- Detri_2.6.a/sos/smaller.c	1995-07-13 18:02:10.000000000 -0700
++++ Detri_2.6.a-new/sos/smaller.c	2016-08-26 14:47:08.000000000 -0700
+@@ -18,14 +18,25 @@
+     print ("sos_smaller (%d,%d,%d,%d, %f (fp), %f (fp))  ",
+            i, j, k, l, lia_real (sos_lia (i,j)), lia_real (sos_lia (k,l)));
+   if (sos_test_flag)
+-    if (not (((i != k) or (j != l))
++/// patched by Harsh Bhatia {
++/*  if (not (((i != k) or (j != l))
+              and (0 < i) and (i <= sos_common.n)
+              and (0 < k) and (k <= sos_common.n)
+              and (0 < j) and (j <= sos_common.d)
+              and (0 < l) and (l <= sos_common.d)))
++*/
++    if (! (((i != k) or (j != l))
++             && (0 < i) and (i <= sos_common.n)
++             && (0 < k) and (k <= sos_common.n)
++             && (0 < j) and (j <= sos_common.d)
++             && (0 < l) and (l <= sos_common.d)))
++/// } patched by Harsh Bhatia
+     basic_error ("sos_smaller: wrong arguments");
+ #endif
+-  if (not lia_eq (sos_lia (i,j), sos_lia (k,l)))
++/// patched by Harsh Bhatia {
++//if (not lia_eq (sos_lia (i,j), sos_lia (k,l)))
++  if (! lia_eq (sos_lia (i,j), sos_lia (k,l)))
++/// } patched by Harsh Bhatia
+     result = (lia_le (sos_lia (i,j), sos_lia (k,l)));
+   else if (i != k)
+     result = (i > k);
+diff -Naur Detri_2.6.a/sos/sos.c Detri_2.6.a-new/sos/sos.c
+--- Detri_2.6.a/sos/sos.c	1995-07-19 00:54:08.000000000 -0700
++++ Detri_2.6.a-new/sos/sos.c	2016-08-26 14:53:03.000000000 -0700
+@@ -160,7 +160,10 @@
+ int sos_is_down (void)
+      /* Returns TRUE iff SoS is shut down and sos_matrix() can be called. */
+ {
+-  return (not parameter);
++/// patched by Harsh Bhatia {
++  //return (not parameter);
++  return (! parameter);
++/// } patched by Harsh Bhatia
+ }
+ 
+ /*--------------------------------------------------------------------------*/
+@@ -171,7 +174,10 @@
+   int loc = FP_LOC (i, j);
+   ;
+   /* Always do a range check! */
+-  if ((i == 0) or (i <  1) or (j <  1) or (j > sos_common.d))
++/// patched by Harsh Bhatia {
++//if ((i == 0) or (i <  1) or (j <  1) or (j > sos_common.d))
++  if ((i == 0) || (i <  1) || (j <  1) || (j > sos_common.d))
++/// } patched by Harsh Bhatia
+     basic_error ("sos_param (%d, %d, ...): wrong indices", i, j);
+   if (i > sos_common.n)
+     { 
+@@ -206,8 +212,11 @@
+         only the rows between 1 and the current n. */
+ {
+   n_enlarge = factor = Max (factor, 1.0);
+-  if ((factor <= 1.0) and (sos_common.n < n_max))
+-    {
++/// patched by Harsh Bhatia {
++  //if ((factor <= 1.0) and (sos_common.n < n_max))
++  if ((factor <= 1.0) && (sos_common.n < n_max))
++/// } patched by Harsh Bhatia
++  {
+       n_max = sos_common.n;
+       allocate (FALSE);
+     }
+@@ -267,10 +276,15 @@
+   int loc = LOC (i, j);
+ #ifdef __DEBUG__
+   if (sos_test_flag)
+-    if ((loc < 0) or (loc > last_loc)
++/// patched by Harsh Bhatia {
++  /*if ((loc < 0) or (loc > last_loc)
+         or (i < 1) or (i > sos_common.n)
+-        or (j < 1) or (j > sos_common.d))
+-    basic_error ("sos_lia(%d,%d) %s: n=%d d=%d lenp=%d len=%d loc=%d last=%d",
++        or (j < 1) or (j > sos_common.d))*/
++    if ((loc < 0) || (loc > last_loc)
++        || (i < 1) || (i > sos_common.n)
++        || (j < 1) || (j > sos_common.d))
++/// } patched by Harsh Bhatia
++        basic_error ("sos_lia(%d,%d) %s: n=%d d=%d lenp=%d len=%d loc=%d last=%d",
+                 i, j, "index error", sos_common.n, sos_common.d,
+                 sos_common.lenp, sos_common.len, loc, last_loc);
+ #endif
+@@ -312,7 +326,10 @@
+     {
+ #ifdef __DEBUG__
+       if (sos_test_flag)
+-        if ((j < 1) or (j > sos_common.d))
++/// patched by Harsh Bhatia {
++      //if ((j < 1) or (j > sos_common.d))
++        if ((j < 1) || (j > sos_common.d))
++/// } patched by Harsh Bhatia
+           basic_error ("sos_lia_0: index error");
+ #endif
+       return (& (parameter [LOC (0, j)]));
+@@ -328,7 +345,10 @@
+ {
+ #if __DEBUG__
+   if (sos_test_flag)
+-    if ((last_star < 1) or (last_star > sos_common.d + 1))
++/// patched by Harsh Bhatia {
++    //if ((last_star < 1) or (last_star > sos_common.d + 1))
++    if ((last_star < 1) || (last_star > sos_common.d + 1))
++/// } patched by Harsh Bhatia
+       basic_error ("sos_lia_0_0: wrong last_star index");
+ #endif
+   return (sos_lia_0 (last_star));
