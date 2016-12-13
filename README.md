@@ -1,4 +1,4 @@
-# Robust Critical Point Detection v1.0
+# Robust Critical Point Detection v1.0.1
 
 Copyright (c) 2016, Lawrence Livermore National Security, LLC.
 
@@ -32,8 +32,31 @@ The CP detection tool can be installed by first building `SimulationOfSimplicity
 ```
 $ pwd
 RobustCriticalPointDetection
+
 $ sh install_deps.sh
 $ mkdir build && cd build
 $ cmake ../
 $ make
 ```
+
+The tool can be run in one of the following two ways.
+
+```
+$ ./CriticalPointDetection file1 X Y Z
+
+ where,
+   file1 is a text file where each line is: x y z vx vy vz (coordinates of points and corresponding vectors)
+   X Y Z are the dimensions of the regular grid (program creates tets automatically)
+```
+
+or 
+
+```
+$ ./CriticalPointDetection file1 file2
+
+ where,
+   file1 is a text file where each line is: x y z vx vy vz (coordinates of points and corresponding vectors)
+   file2 is a text file where each line is: i1 i2 i3 i4 (indices of the 4 corners of a tet)
+```
+
+The code is easy to extend for a variety of data formats. The code only needs the vetor field and tetrahedra. Please see the main function to write custom input/output formats.

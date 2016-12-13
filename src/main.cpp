@@ -75,21 +75,40 @@ vector<ivec4> create_tets(uint X, uint Y, uint Z){
 
 
 // -----------------------------------------------------------------------
+void usage(int argc, char *argv[]) {
+
+    printf("Usage:\n");
+    printf("  %s file1 X Y Z\n", argv[0]);
+    printf("  %s file1 file2\n", argv[0]);
+    printf("\n where,\n");
+    printf("   file1 is a text file where each line is: x y z vx vy vz (coordinates of points and corresponding vectors)\n");
+    printf("   X Y Z are the dimensions of the regular grid (program creates tets automatically)\n");
+    printf("   file2 is a text file where each line is: i1 i2 i3 i4 (indices of the 4 corners of a tet)\n");
+}
+
+// -----------------------------------------------------------------------
 // main function
 
 int main (int argc, char *argv[]){
 
+    if(argc != 3 && argc != 5) {
+        usage(argc, argv);
+        exit(1);
+    }
+
     // -----------------------------------------------------------
     // vdim is the dimensionality of vector field (2 or 3)
-    int vdim = 3;
+    const int vdim = 3;
 
     // vector field is a vector of vec (vec is a vector of 3 doubles)
     vector<vec> vfield;
     vector<point> points;
     vector<ivec4> tets;
 
-    RW::read_text(points, vfield, "/Users/bhatia4/WORK/data/from_Primoz/random/vfrandom5.txt", vdim);
-    RW::read_text(tets, "/Users/bhatia4/WORK/data/from_Primoz/random/tetlistrandom5.txt");
+    RW::read_text(points, vfield, argv[1], vdim);
+
+    if(argc == 3) {     RW::read_text(tets, argv[2]);                                           }
+    else {              tets = create_tets ( atoi(argv[2]), atoi(argv[3]), atoi(argv[4]) );     }
 
     CPDetector *CPD = new CPDetector(&vfield, &tets);
     CPD->compute();
