@@ -12,6 +12,11 @@
 
 cmake_minimum_required(VERSION 2.8)
 
+ENABLE_LANGUAGE(CXX)
+PROJECT(RobustCriticalPointDetection CXX)
+
+set(CMAKE_BUILD_TYPE Release)
+
 # --------------------------------
 add_definitions(-DUSE_SOS)
 
@@ -20,6 +25,15 @@ set(SOS_LIB "${SOS_PATH}/build/lib/libSoS.a" CACHE FILEPATH "SOS library")
 
 message( STATUS "SOS_PATH: " ${SOS_PATH} )
 message( STATUS "SOS_LIB: " ${SOS_LIB} )
+
+FIND_PACKAGE(VTK)
+
+IF(VTK_FOUND)
+  message(STATUS "found VTK. Version:" ${VTK_VERSION} ". VTK_DIR: " ${VTK_DIR})
+  include(${VTK_USE_FILE})
+  add_definitions (-DUSE_VTK=TRUE)
+ENDIF(VTK_FOUND)
+
 
 # --------------------------------
 
@@ -35,3 +49,7 @@ set(HEADERS ./include/vec.h ./include/RW.h ./include/CP.h ./include/sos_utils.h)
 
 add_executable(CriticalPointDetection ${SOURCE} ${HEADER})
 target_link_libraries(CriticalPointDetection ${SOS_LIB})
+
+IF(VTK_FOUND)
+target_link_libraries(CriticalPointDetection LINK_PUBLIC vtkCommonCore vtkCommonDataModel vtkIOCore vtkIOXML vtkIOLegacy)# vtkIOMPIParallel)
+endif(VTK_FOUND)

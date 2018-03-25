@@ -224,6 +224,82 @@ vector<point> RW::read_plot3d_x(string filename, int &x, int &y, int &z){
     }
 
     xfile.close();
-    printf(" Done! Read [%dx%dx%d] = %'d points", x, y, z, points.size());
+    printf(" Done! Read [%dx%dx%d] = %'ld points", x, y, z, points.size());
     return points;
 }
+
+point RW::get_centroid(const ivec4 &tet, const std::vector<point> &points){
+    return ( points[tet[0]] + points[tet[1]] + points[tet[2]] + points[tet[3]] ) / 4.0;
+}
+
+point RW::get_centroid(const ivec3 &tri, const std::vector<point> &points){
+    return ( points[tri[0]] + points[tri[1]] + points[tri[2]] ) / 3.0;
+}
+
+
+// -----------------------------------------------------------------------
+// VTK Image file
+
+#ifdef USE_VTK
+#include <vtkSmartPointer.h>
+#include <vtkFloatArray.h>
+#include <vtkPointData.h>
+#include <vtkImageData.h>
+#include <vtkXMLImageDataReader.h>
+
+int RW::read_vti(std::vector<size_t> &dims, std::vector<vec> &vfield, vector<point> &points, std::string filename) {
+
+    printf(" Read vti file %s...", filename.c_str());
+    fflush(stdout);
+
+    // Read the file
+    vtkSmartPointer<vtkXMLImageDataReader> reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
+    reader->SetFileName(filename.c_str());
+    reader->Update();
+
+    vtkImageData* idata = reader->GetOutput();
+    vtkDataArray* field = idata->GetPointData()->GetVectors();
+
+    int idims[3];
+    idata->GetDimensions(idims);
+
+    double origin[3], spacing[3];
+    idata->GetOrigin(origin);
+    idata->GetSpacing(spacing);
+
+    dims.resize(3);
+    for(uint i=0; i < 3; i++)
+        dims[i] = size_t(idims[i]);
+
+    size_t npoints = dims[0]*dims[1]*dims[2];
+    vfield.resize(npoints);
+    points.resize(npoints);
+
+    for(uint z = 0; z < dims[2]; z++){
+    for(uint y = 0; y < dims[1]; y++){
+    for(uint x = 0; x < dims[0]; x++){
+
+        size_t idx = x + y*dims[0] + z*dims[0]*dims[1];
+
+        points[idx][0] = origin[0] + float(x)*spacing[0];
+        points[idx][1] = origin[1] + float(y)*spacing[1];
+        points[idx][2] = origin[2] + float(z)*spacing[2];
+
+        for(uint d = 0; d < 3; d++){
+            vfield[idx][d] = field->GetComponent(idx, d);
+        }
+    }
+    }
+    }
+
+    printf(" Done! Read %'ld vectors, domain = [%ld x %ld x %ld]\n", vfield.size(), dims[0], dims[1], dims[2]);
+    return (dims[2] == 1 ? 2 : 3);
+}
+
+#else
+int RW::read_vti(std::vector<size_t> &dims, std::vector<vec> &vfield, std::string filename) {
+    printf("VTK not available. Please reinstall with VTK libraries!\n");
+    exit(1);
+}
+#endif
+// -----------------------------------------------------------------------
