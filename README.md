@@ -39,10 +39,10 @@ $ cmake ../
 $ make
 ```
 
-The tool can be run in one of the following three ways.
+The tool can be run in one of the following four ways (2,3,4, or 5 arguments).
 
 ```
-$ ./CriticalPointDetection file1.vti
+$ ./CriticalPointDetection file1.vti        [[NOTE: this mode works for both 2D and 3D]]
 
  where,
 	file.vti is a XML-format VTK Image data file
@@ -51,21 +51,31 @@ $ ./CriticalPointDetection file1.vti
 or 
 
 ```
-$ ./CriticalPointDetection file1 X Y Z
+$ ./CriticalPointDetection file1 file2      [[NOTE: this mode currently works for 3D only]]
+
+where,
+file1 is a text file where each line is: x y z vx vy vz (coordinates of points and corresponding vectors)
+file2 is a text file where each line is: i1 i2 i3 i4 (indices of the 4 corners of a tet)
+```
+
+or
+
+```
+$ ./CriticalPointDetection file1 X Y        [[NOTE: this mode is for 2D fields]]
 
  where,
-   file1 is a text file where each line is: x y z vx vy vz (coordinates of points and corresponding vectors)
-   X Y Z are the dimensions of the regular grid (program creates tets automatically)
+   file1 is a text file where each line is: x y vx vy (coordinates of points and corresponding vectors)
+   X Y are the dimensions of the regular grid (program creates triangles automatically)
 ```
 
 or 
 
 ```
-$ ./CriticalPointDetection file1 file2
+$ ./CriticalPointDetection file1 X Y Z      [[NOTE: this mode is for 3D fields]]
 
- where,
-   file1 is a text file where each line is: x y z vx vy vz (coordinates of points and corresponding vectors)
-   file2 is a text file where each line is: i1 i2 i3 i4 (indices of the 4 corners of a tet)
+where,
+file1 is a text file where each line is: x y z vx vy vz (coordinates of points and corresponding vectors)
+X Y Z are the dimensions of the regular grid (program creates tets automatically)
 ```
 
 The program writes the critical points as a space-delimeted text file. The output filename is `<file1>.cp.txt`. Each line of the output file contains 4 numbers:

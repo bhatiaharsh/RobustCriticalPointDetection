@@ -17,14 +17,14 @@
 
 // -----------------------------------------------------------------------
 // create tets. 5 tets per cube : http://www.ics.uci.edu/~eppstein/projects/tetra/
-void create_tets(uint X, uint Y, uint Z, vector<ivec4> &tets){
+void create_tets(size_t X, size_t Y, size_t Z, vector<ivec4> &tets){
 
     printf(" Creating tets...");
 
-    uint XY = X*Y;
-    for(uint slice = 1; slice < Z; slice++){
-    for(uint row = 1; row < Y; row++){
-    for(uint col = 1; col < X; col++){
+    size_t XY = X*Y;
+    for(size_t slice = 1; slice < Z; slice++){
+    for(size_t row = 1; row < Y; row++){
+    for(size_t col = 1; col < X; col++){
 
         // v is the bottom left vertex (origin)
         // vx is the next vertex in x direction
@@ -62,13 +62,13 @@ void create_tets(uint X, uint Y, uint Z, vector<ivec4> &tets){
     printf("Done! Created %'d tets!\n", tets.size());
 }
 
-// create tris. 2 triangles ber quad
-void create_tris(uint X, uint Y, vector<ivec3> &triangles){
+// create tris. 2 triangles per quad
+void create_tris(size_t X, size_t Y, vector<ivec3> &triangles){
 
     printf(" Creating triangles...");
 
-    for(uint row = 1; row < Y; row++){
-    for(uint col = 1; col < X; col++){
+    for(size_t row = 1; row < Y; row++){
+    for(size_t col = 1; col < X; col++){
 
         // v is the bottom left vertex (origin)
         // vx is the next vertex in x direction
@@ -94,15 +94,76 @@ void create_tris(uint X, uint Y, vector<ivec3> &triangles){
 }
 
 // -----------------------------------------------------------------------
+// actual function that computes the critical points
+void compute_cp(const int &vdim, const std::vector<size_t> &dims,
+                const vector<vec> &vfield, const vector<point> &points,
+                const std::string &outfname) {
+
+    if (2 == vdim) {
+
+        vector<ivec3> tris;
+        create_tris ( dims[0], dims[1], tris );
+
+        CPDetector *CPD = new CPDetector(&vfield, &tris);
+        CPD->compute();
+
+        const std::vector<size_t> &cp = CPD->get_CP();
+
+        /*
+        // display critical points
+        for(uint i = 0; i < cp.size(); i++){
+
+            uint t = cp[i];
+            point p = RW::get_centroid(tris[t], points);
+            printf(" CP exists in simplex %d at [%f, %f, %f]\n", t, p[0], p[1], p[2]);
+            //printf(" CP exists in simplex %d\n", t);
+        }*/
+
+        RW::write_cp(outfname, cp, tris, points);
+        delete CPD;
+    }
+
+    else if (3 == vdim) {
+
+        vector<ivec4> tets;
+        create_tets ( dims[0], dims[1], dims[2], tets );
+
+        CPDetector *CPD = new CPDetector(&vfield, &tets);
+        CPD->compute();
+
+        const std::vector<size_t> &cp = CPD->get_CP();
+
+        /*
+        // display critical points
+        for(size_t i = 0; i < cp.size(); i++){
+
+            size_t t = cp[i];
+            point p = get_centroid(tets[t], points);
+            printf(" CP exists in simplex %d at [%f, %f, %f]\n", t, p[0], p[1], p[2]);
+        }*/
+
+        RW::write_cp(outfname, cp, tets, points);
+        delete CPD;
+    }
+
+    else {
+        std::cerr << " Invalid dimensionality! Can be 2 or 3, but found " << vdim << std::endl;
+        exit(1);
+    }
+}
+
+// -----------------------------------------------------------------------
 void usage(int argc, char *argv[]) {
 
     printf("Usage:\n");
     printf("  %s file.vti\n", argv[0]);
+    printf("  %s file1 X Y\n", argv[0]);
     printf("  %s file1 X Y Z\n", argv[0]);
     printf("  %s file1 file2\n", argv[0]);
     printf("\n where,\n");
     printf("   file.vti is a VTK image data file\n");
-    printf("   file1 is a text file where each line is: x y z vx vy vz (coordinates of points and corresponding vectors)\n");
+    printf("   file1 is a text file where each line is: x y z vx vy vz (coordinates of points and corresponding vectors) [[x y vx vy: for the 2D case]]\n");
+    printf("   X Y are the dimensions of the regular grid (program creates trianglues automatically)\n");
     printf("   X Y Z are the dimensions of the regular grid (program creates tets automatically)\n");
     printf("   file2 is a text file where each line is: i1 i2 i3 i4 (indices of the 4 corners of a tet)\n");
 }
@@ -112,13 +173,17 @@ void usage(int argc, char *argv[]) {
 
 int main (int argc, char *argv[]){
 
-    if(argc != 2 && argc != 3 && argc != 5) {
+    if(argc < 2 || argc > 5) {
         usage(argc, argv);
         exit(1);
     }
 
+
+    const std::string infilename (argv[1]);
+    const std::string outfilename = std::string(infilename).append(".cp.txt");
+
     // -----------------------------------------------------------
-    // read dimensionality from vtk file
+    // 2 arguments: ./CriticalPointDetection file1.vti
     if (argc == 2) {
 
 #ifndef USE_VTK
@@ -129,64 +194,17 @@ int main (int argc, char *argv[]){
         vector<vec> vfield;
         vector<point> points;
 
-        int vdim = RW::read_vti(dims, vfield, points, argv[1]);
-
-        if (vdim == 2) {
-
-            vector<ivec3> tris;
-            create_tris ( dims[0], dims[1], tris );
-
-            CPDetector *CPD = new CPDetector(&vfield, &tris);
-            CPD->compute();
-
-            const std::vector<uint> &cp = CPD->get_CP();
-
-            /*
-            // display critical points
-            for(uint i = 0; i < cp.size(); i++){
-
-                uint t = cp[i];
-                point p = RW::get_centroid(tris[t], points);
-                printf(" CP exists in simplex %d at [%f, %f, %f]\n", t, p[0], p[1], p[2]);
-                //printf(" CP exists in simplex %d\n", t);
-            }*/
-
-            std::string outfile(argv[1]);
-            outfile = outfile.append(".cp.txt");
-            RW::write_cp(outfile, cp, tris, points);
-
-            delete CPD;
-        }
-        else if (vdim == 3) {
-
-            vector<ivec4> tets;
-            create_tets ( dims[0], dims[1], dims[2], tets );
-
-            CPDetector *CPD = new CPDetector(&vfield, &tets);
-            CPD->compute();
-
-            const std::vector<uint> &cp = CPD->get_CP();
-
-            /*
-            // display critical points
-            for(uint i = 0; i < cp.size(); i++){
-
-                uint t = cp[i];
-                point p = get_centroid(tets[t], points);
-                printf(" CP exists in simplex %d at [%f, %f, %f]\n", t, p[0], p[1], p[2]);
-            }*/
-            std::string outfile(argv[1]);
-            outfile = outfile.append(".cp.txt");
-            RW::write_cp(outfile, cp, tets, points);
-
-            delete CPD;
-        }
+        int vdim = RW::read_vti(dims, vfield, points, infilename);
+        compute_cp(vdim, dims, vfield, points, outfilename);
 #endif
     }
 
-
     // -----------------------------------------------------------
-    else{
+    // 3 arguments: ./CriticalPointDetection file1 file2
+    else if (argc == 3) {
+
+        std::cerr << " WARNING: Three-argument mode currently works for 3D fields only!\n";
+
         // currently, working only for 3D
         // vdim is the dimensionality of vector field (2 or 3)
         const int vdim = 3;
@@ -196,30 +214,59 @@ int main (int argc, char *argv[]){
         vector<point> points;
         vector<ivec4> tets;
 
-        RW::read_text(points, vfield, argv[1], vdim);
-
-        if(argc == 3) {     RW::read_text(tets, argv[2]);                                       }
-        else {              create_tets ( atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), tets );  }
+        RW::read_text(points, vfield, infilename, vdim);
+        RW::read_text(tets, argv[2]);
 
         CPDetector *CPD = new CPDetector(&vfield, &tets);
         CPD->compute();
 
-        const std::vector<uint> &cp = CPD->get_CP();
+        const std::vector<size_t> &cp = CPD->get_CP();
 
         /*
         // display critical points
-        for(uint i = 0; i < cp.size(); i++){
+        for(size_t i = 0; i < cp.size(); i++){
 
-            uint t = cp[i];
+            size_t t = cp[i];
             point p = RW::get_centroid(tets[t], points);
             printf(" CP exists in simplex %d at [%f, %f, %f]\n", t, p[0], p[1], p[2]);
         }*/
 
-        std::string outfile(argv[1]);
-        outfile = outfile.append(".cp.txt");
-        RW::write_cp(outfile, cp, tets, points);
-
+        RW::write_cp(outfilename, cp, tets, points);
         delete CPD;
+    }
+
+    // -----------------------------------------------------------
+    // 4 arguments: ./CriticalPointDetection file1 X Y
+    else if (argc == 4){
+
+        const int vdim = 2;
+        const std::vector<size_t> dims ({size_t(atoi(argv[2])), size_t(atoi(argv[3]))});
+
+        vector<vec> vfield;
+        vector<point> points;
+
+        RW::read_text(points, vfield, infilename, vdim);
+        compute_cp(vdim, dims, vfield, points, outfilename);
+    }
+
+    // -----------------------------------------------------------
+    // 5 arguments: ./CriticalPointDetection file1 X Y Z
+    else if (argc == 3){
+
+        const int vdim = 3;
+        const std::vector<size_t> dims ({size_t(atoi(argv[2])), size_t(atoi(argv[3])), size_t(atoi(argv[4]))});
+
+        vector<vec> vfield;
+        vector<point> points;
+
+        RW::read_text(points, vfield, infilename, vdim);
+        compute_cp(vdim, dims, vfield, points, outfilename);
+    }
+
+    // -----------------------------------------------------------
+    else {
+        std::cerr << "Invalid number of arguments!\n";
+        exit(1);
     }
     return 0;
 }

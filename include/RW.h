@@ -37,7 +37,7 @@ namespace RW{
     point get_centroid(const ivec3 &tri, const std::vector<point> &points);
 
     template<typename T>
-    void write_cp(const std::string &filename, const std::vector<uint> &cp, const std::vector<T> &cells, const std::vector<point> &points) {
+    void write_cp(const std::string &filename, const std::vector<size_t> &cp, const std::vector<T> &cells, const std::vector<point> &points) {
 
         std::ofstream infile(filename.c_str());
         if(!infile.is_open()){
@@ -49,9 +49,9 @@ namespace RW{
         fflush(stdout);
 
         // display critical points
-        for(uint i = 0; i < cp.size(); i++){
+        for(size_t i = 0; i < cp.size(); i++){
 
-            uint t = cp[i];
+            size_t t = cp[i];
             point p = get_centroid(cells[t], points);
 
             infile << t << " " << p[0] << " " << p[1] << " " << p[2] << std::endl;

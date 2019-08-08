@@ -25,7 +25,7 @@ class CPDetector{
     const std::vector<ivec4> *tets;   // tets
     const std::vector<ivec3> *tris;   // tets
 
-    std::vector<unsigned int> cp;       // indices of simplices containing cp
+    std::vector<size_t> cp;           // indices of simplices containing cp
 
 
     unsigned int SOS_ZERO_IDX = 1;  // index assigned to zero value!
@@ -53,7 +53,7 @@ public:
     static bool point_in_tetrahedron(const point &p, const point &a, const point &b, const point &c, const point &d);
 
     void compute();
-    const std::vector<unsigned int>& get_CP() const {   return cp;  }
+    const std::vector<size_t>& get_CP() const {   return cp;  }
 
 };
 #endif

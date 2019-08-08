@@ -268,16 +268,16 @@ int RW::read_vti(std::vector<size_t> &dims, std::vector<vec> &vfield, vector<poi
     idata->GetSpacing(spacing);
 
     dims.resize(3);
-    for(uint i=0; i < 3; i++)
+    for(size_t i=0; i < 3; i++)
         dims[i] = size_t(idims[i]);
 
     size_t npoints = dims[0]*dims[1]*dims[2];
     vfield.resize(npoints);
     points.resize(npoints);
 
-    for(uint z = 0; z < dims[2]; z++){
-    for(uint y = 0; y < dims[1]; y++){
-    for(uint x = 0; x < dims[0]; x++){
+    for(size_t z = 0; z < dims[2]; z++){
+    for(size_t y = 0; y < dims[1]; y++){
+    for(size_t x = 0; x < dims[0]; x++){
 
         size_t idx = x + y*dims[0] + z*dims[0]*dims[1];
 
@@ -285,7 +285,7 @@ int RW::read_vti(std::vector<size_t> &dims, std::vector<vec> &vfield, vector<poi
         points[idx][1] = origin[1] + float(y)*spacing[1];
         points[idx][2] = origin[2] + float(z)*spacing[2];
 
-        for(uint d = 0; d < 3; d++){
+        for(uint8_t d = 0; d < 3; d++){
             vfield[idx][d] = field->GetComponent(idx, d);
         }
     }
