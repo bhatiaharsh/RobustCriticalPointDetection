@@ -10,12 +10,13 @@
 # For more details on the Licence, please read LICENCE file.
 
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.22)
 
 ENABLE_LANGUAGE(CXX)
 PROJECT(RobustCriticalPointDetection CXX)
 
-set(CMAKE_BUILD_TYPE Release)
+#set(CMAKE_BUILD_TYPE Release)
+
 
 # --------------------------------
 add_definitions(-DUSE_SOS)
@@ -45,11 +46,11 @@ include_directories(
 )
 
 set(SOURCE ./src/RW.cpp ./src/CP.cpp ./src/main.cpp)
-set(HEADERS ./include/vec.h ./include/RW.h ./include/CP.h ./include/sos_utils.h)
+set(HEADER ./include/vec.h ./include/RW.h ./include/CP.h ./include/sos_utils.h)
 
 add_executable(CriticalPointDetection ${SOURCE} ${HEADER})
 target_link_libraries(CriticalPointDetection ${SOS_LIB})
 
 IF(VTK_FOUND)
-target_link_libraries(CriticalPointDetection LINK_PUBLIC vtkCommonCore vtkCommonDataModel vtkIOCore vtkIOXML vtkIOLegacy)# vtkIOMPIParallel)
+target_link_libraries(CriticalPointDetection vtkCommonCore vtkCommonDataModel vtkIOCore vtkIOXML vtkIOLegacy)# vtkIOMPIParallel)
 endif(VTK_FOUND)

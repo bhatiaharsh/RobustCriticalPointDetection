@@ -99,7 +99,7 @@ bool CPDetector::createSoS(bool verbose){
    for(uint v = 0; v < vsz; v++){
    for(uint d = 0; d < sm.data_dim; d++){
       SoSUtils::ffp_param_push2 (v+1, d+1, SoSUtils::float_to_fixed(vfield->at(v)[d], sm.fix_a), sm.fix_w, sm.fix_a);
-      //printf(" adding to SoS [%d][%d] %f\n", v+1, d+1, vfield[v][d]);
+      //printf(" adding to SoS [%d][%d] %f %f\n", v+1, d+1, vfield->at(v)[d], SoSUtils::float_to_fixed(vfield->at(v)[d], sm.fix_a));
    }
    }
 
@@ -119,8 +119,10 @@ float CPDetector::sign (const point &p1, const point &p2, const point &p3){
     return 0;
 }
 
+#ifndef USE_SOS
 bool CPDetector::point_in_triangle(const point &p, const point &a, const point &b, const point &c) {
 
+    std::cerr << "CPDetector::point_in_triangle not implemented without USE_SOS!\n";
     return false;
 #if 0
     bool b1, b2, b3;
@@ -134,8 +136,10 @@ bool CPDetector::point_in_triangle(const point &p, const point &a, const point &
 }
 
 bool CPDetector::point_in_tetrahedron(const point &p, const point &a, const point &b, const point &c, const point &d) {
+    std::cerr << "CPDetector::point_in_tetrahedron not implemented without USE_SOS!\n";
     return false;
 }
+#endif
 
 void CPDetector::compute() {
 

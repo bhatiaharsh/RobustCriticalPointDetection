@@ -43,8 +43,8 @@ typedef struct SoS_metadata_struct
   // info about data size
   int data_size;    // no of points
   int data_dim;     // dim of points
-  int simp_size;    // no of simplices
-  int simp_dim;     // dim of simplices
+  //int simp_size;    // no of simplices
+  //int simp_dim;     // dim of simplices
 
   // info about data precision
   int decimals;
