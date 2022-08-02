@@ -165,7 +165,7 @@ void usage(int argc, char *argv[]) {
     printf("   file1 is a text file where each line is: x y z vx vy vz (coordinates of points and corresponding vectors) [[x y vx vy: for the 2D case]]\n");
     printf("   X Y are the dimensions of the regular grid (program creates trianglues automatically)\n");
     printf("   X Y Z are the dimensions of the regular grid (program creates tets automatically)\n");
-    printf("   file2 is a text file where each line is: i1 i2 i3 i4 (indices of the 4 corners of a tet)\n");
+    printf("   file2 is a text file where each line is: i1 i2 i3 i4 (indices of the 3/4 corners of a tri/tet)\n");
 }
 
 // -----------------------------------------------------------------------
@@ -203,36 +203,81 @@ int main (int argc, char *argv[]){
     // 3 arguments: ./CriticalPointDetection file1 file2
     else if (argc == 3) {
 
-        std::cerr << " WARNING: Three-argument mode currently works for 3D fields only!\n";
+        const std::string tri_file(argv[2]);
 
-        // currently, working only for 3D
-        // vdim is the dimensionality of vector field (2 or 3)
-        const int vdim = 3;
+        // -------------------------------------------------------
+        // peek in file to identify dimensionality!
 
-        // vector field is a vector of vec (vec is a vector of 3 doubles)
-        vector<vec> vfield;
-        vector<point> points;
-        vector<ivec4> tets;
+        const int ncols_val = RW::count_columns(infilename);
+        const int ncols_tri = RW::count_columns(tri_file);
 
-        RW::read_text(points, vfield, infilename, vdim);
-        RW::read_text(tets, argv[2]);
+        // 2D case
+        if (ncols_val == 4 && ncols_tri == 3) {
 
-        CPDetector *CPD = new CPDetector(&vfield, &tets);
-        CPD->compute();
+            // vdim is the dimensionality of vector field (2 or 3)
+            const int vdim = 2;
 
-        const std::vector<size_t> &cp = CPD->get_CP();
+            // vector field is a vector of vec (vec is a vector of 3 doubles)
+            vector<vec> vfield;
+            vector<point> points;
+            vector<ivec3> tris;
 
-        /*
-        // display critical points
-        for(size_t i = 0; i < cp.size(); i++){
+            RW::read_text(points, vfield, infilename, vdim);
+            RW::read_text(tris, tri_file);
 
-            size_t t = cp[i];
-            point p = RW::get_centroid(tets[t], points);
-            printf(" CP exists in simplex %d at [%f, %f, %f]\n", t, p[0], p[1], p[2]);
-        }*/
+            CPDetector *CPD = new CPDetector(&vfield, &tris);
+            CPD->compute();
 
-        RW::write_cp(outfilename, cp, tets, points);
-        delete CPD;
+            const std::vector<size_t> &cp = CPD->get_CP();
+
+            /*
+            // display critical points
+            for(size_t i = 0; i < cp.size(); i++){
+
+                size_t t = cp[i];
+                point p = RW::get_centroid(tets[t], points);
+                printf(" CP exists in simplex %d at [%f, %f, %f]\n", t, p[0], p[1], p[2]);
+            }*/
+
+            RW::write_cp(outfilename, cp, tris, points);
+            delete CPD;
+        }
+
+        else if (ncols_val == 6 && ncols_tri == 4) {
+
+            // vdim is the dimensionality of vector field (2 or 3)
+            const int vdim = 3;
+
+            // vector field is a vector of vec (vec is a vector of 3 doubles)
+            vector<vec> vfield;
+            vector<point> points;
+            vector<ivec4> tets;
+
+            RW::read_text(points, vfield, infilename, vdim);
+            RW::read_text(tets, tri_file);
+
+            CPDetector *CPD = new CPDetector(&vfield, &tets);
+            CPD->compute();
+
+            const std::vector<size_t> &cp = CPD->get_CP();
+
+            /*
+            // display critical points
+            for(size_t i = 0; i < cp.size(); i++){
+
+                size_t t = cp[i];
+                point p = RW::get_centroid(tets[t], points);
+                printf(" CP exists in simplex %d at [%f, %f, %f]\n", t, p[0], p[1], p[2]);
+            }*/
+
+            RW::write_cp(outfilename, cp, tets, points);
+            delete CPD;
+        }
+
+        else {
+            std::cerr << " Invalid files/dimensionality: found " << ncols_val << " and " << ncols_tri << " columns!\n";
+            exit(1);
+        }
     }
 
     // -----------------------------------------------------------

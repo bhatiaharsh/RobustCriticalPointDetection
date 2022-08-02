@@ -20,6 +20,30 @@ using namespace std;
 // -----------------------------------------------------------------------
 // text files
 
+int RW::count_columns(const string &filename) {
+
+    ifstream infile(filename.c_str());
+    if(!infile.is_open()){
+        cerr << "Unable to open file "<<filename<<endl;
+        exit(1);
+    }
+
+    std::string str;
+    std::getline(infile, str);
+
+    const std::string delimiter(" ");
+    size_t pos = 0;
+    size_t cnt = 0;
+    while ((pos = str.find(delimiter)) != string::npos) {
+        str.erase(0, pos + delimiter.length());
+        cnt ++;
+    }
+    cnt += int(delimiter.length() > 0);
+
+    infile.close();
+    return cnt;
+}
+
 void RW::read_text(std::vector<point> &points, vector<vec> &vfield, string filename, int vdim){
 
     ifstream infile(filename.c_str());

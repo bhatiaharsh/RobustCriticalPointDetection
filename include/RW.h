@@ -22,6 +22,8 @@
 
 namespace RW{
 
+    int count_columns(const std::string &filename);
+
     void read_text(std::vector<point> &points, std::vector<vec> &vfield, std::string filename, int vdim);
     void read_text(std::vector<ivec4> &tets, std::string filename);
     void read_text(std::vector<ivec3> &tris, std::string filename);
