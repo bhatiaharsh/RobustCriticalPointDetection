@@ -321,7 +321,7 @@ int RW::read_vti(std::vector<size_t> &dims, std::vector<vec> &vfield, vector<poi
 }
 
 #else
-int RW::read_vti(std::vector<size_t> &dims, std::vector<vec> &vfield, std::string filename) {
+int RW::read_vti(std::vector<size_t> &dims, std::vector<vec> &vfield, vector<point> &points, std::string filename) {
     printf("VTK not available. Please reinstall with VTK libraries!\n");
     exit(1);
 }
